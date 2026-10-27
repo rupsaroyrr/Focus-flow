@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#cbdabd">
+  <title>FocusFlow — Forest Study Space</title>
+
+  <style>
+    /* ---------- Theme ---------- */
+
+    :root {
+      color-scheme: light;
+      --bg: #cbdabd;
+      --card: #faf3df;
+      --ink: #293c2d;
+      --muted: #69745f;
+      --accent: #426745;
+      --accent-soft: #e1e8cd;
+      --line: #bbc6a0;
+      --field: #f0eedc;
+      --tree-back: #729565;
+      --tree-front: #426c4b;
+      --shadow:
+        0 4px 0 rgba(71, 91, 53, 0.15),
+        0 12px 24px rgba(35, 59, 36, 0.07);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #152b27;
+      --card: #253b31;
+      --ink: #edf1d9;
+      --muted: #b2bea3;
+      --accent: #b1cf88;
+      --accent-soft: #364e37;
+      --line: #50644b;
+      --field: #1e322a;
+      --tree-back: #355c46;
+      --tree-front: #102b22;
+      --shadow:
+        0 4px 0 rgba(5, 18, 12, 0.35),
+        0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    /* ---------- Foundation ---------- */
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      overflow-wrap: anywhere;
+    }
+
+    h1,
+    h2,
+    h3,
+    .brand,
+    .stat b,
+    .timer-display {
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0 0 9px;
+      font-size: clamp(25px, 3vw, 34px);
+      line-height: 1.25;
+      letter-spacing: -1.2px;
+    }
+
+    h2 {
+      margin: 0 0 15px;
+      font-size: 19px;
+      line-height: 1.4;
+      letter-spacing: -0.6px;
+    }
+
+    h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .sub {
+      margin: 0 0 25px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* ---------- Forest scenery ---------- */
+
+    .forest-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background:
+        radial-gradient(
+          ellipse at 78% 8%,
+          rgba(255, 244, 193, 0.65),
+          transparent 43%
+        ),
+        linear-gradient(
+          180deg,
+          #e0e8d2 0%,
+          #cbdabd 48%,
+          #a7bf96 100%
+        );
+    }
+
+    [data-theme="dark"] .forest-scene {
+      background:
+        radial-gradient(
+          ellipse at 78% 8%,
+          rgba(191, 214, 159, 0.12),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #14292c 0%,
+          #1d3830 55%,
+          #2b4b36 100%
+        );
+    }
+
+    .forest-sun {
+      position: absolute;
+      top: 60px;
+      right: 8%;
+      width: 70px;
+      height: 70px;
+      background: #f5e7ab;
+      opacity: 0.7;
+      clip-path: polygon(
+        25% 0, 75% 0, 75% 12%, 100% 12%,
+        100% 88%, 75% 88%, 75% 100%, 25% 100%,
+        25% 88%, 0 88%, 0 12%, 25% 12%
+      );
+    }
+
+    [data-theme="dark"] .forest-sun {
+      background: #d9e3b6;
+      opacity: 0.55;
+    }
+
+    .forest-layer {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: block;
+      width: 100%;
+    }
+
+    .forest-layer.back {
+      height: 310px;
+      color: var(--tree-back);
+      opacity: 0.26;
+    }
+
+    .forest-layer.front {
+      height: 215px;
+      color: var(--tree-front);
+      opacity: 0.22;
+    }
+
+    /* ---------- Layout ---------- */
+
+    .layout {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: 100vh;
+      background: transparent;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      flex: 0 0 250px;
+      width: 250px;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 28px 17px;
+      border-right: 2px solid var(--line);
+      background: var(--card);
+    }
+
+    /* ---------- Logo and branding ---------- */
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 8px;
+      color: var(--accent);
+      font-size: 23px;
+      letter-spacing: -1px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      display: block;
+      flex: 0 0 46px;
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+    }
+
+    /*
+      For a pixel-art logo, optionally add:
+      .brand-logo { image-rendering: pixelated; }
+    */
+
+    .brand-caption {
+      margin: 12px 0 30px;
+      padding-left: 10px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .mobile-header {
+      display: none;
+    }
+
+    /* ---------- Navigation ---------- */
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 48px;
+      padding: 12px 13px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .nav a:hover {
+      border-color: var(--line);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .nav a.active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--card);
+      box-shadow: 3px 3px 0 var(--line);
+    }
+
+    .nav svg,
+    .mobilebar svg {
+      display: block;
+      flex: 0 0 20px;
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-note {
+      margin: 36px 8px 0;
+      padding: 15px 12px;
+      border: 1px dashed var(--line);
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    main {
+      flex: 1;
+      align-self: flex-start;
+      min-width: 0;
+      width: 100%;
+      max-width: 1350px;
+      margin: 0 auto;
+      padding: 40px 35px 65px;
+    }
+
+    /* ---------- Cards ---------- */
+
+    .card,
+    .stat,
+    .links a {
+      min-width: 0;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .card {
+      padding: 23px;
+    }
+
+    .grid {
+      display: grid;
+      align-items: start;
+      gap: 20px;
+    }
+
+    .g2 {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    }
+
+    .g3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .g4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
+      margin-bottom: 24px;
+    }
+
+    .stat {
+      position: relative;
+      overflow: hidden;
+      padding: 21px;
+    }
+
+    .stat::before {
+      position: absolute;
+      top: 22px;
+      left: 0;
+      width: 5px;
+      height: 30px;
+      background: var(--accent);
+      content: "";
+    }
+
+    .stat small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stat b {
+      display: block;
+      margin-top: 9px;
+      color: var(--accent);
+      font-size: 29px;
+      line-height: 1.3;
+      letter-spacing: -1px;
+    }
+
+    /* ---------- Buttons ---------- */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 43px;
+      padding: 10px 16px;
+      border: 2px solid var(--accent);
+      border-radius: 4px;
+      background: var(--accent);
+      color: var(--card);
+      box-shadow: 0 3px 0 var(--line);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+      text-align: center;
+      text-decoration: none;
+      transition: transform 120ms, box-shadow 120ms;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 0 var(--line);
+    }
+
+    .btn:active {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+
+    .btn.ghost {
+      border-color: var(--line);
+      background: var(--card);
+      color: var(--accent);
+    }
+
+    .btn.ghost:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .btn.small {
+      min-height: 33px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .btn.danger {
+      border-color: #984c45;
+      background: #984c45;
+      color: #fff8ea;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    /* ---------- Forms ---------- */
+
+    label {
+      display: block;
+      margin: 13px 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    input:not([type="checkbox"]),
+    select,
+    textarea {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 2px solid var(--line);
+      border-radius: 4px;
+      background: var(--field);
+      color: var(--ink);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--muted);
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    input[type="checkbox"] {
+      flex: 0 0 18px;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .row > * {
+      flex: 1 1 130px;
+      min-width: 0;
+    }
+
+    /* ---------- Tasks and tabs ---------- */
+
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      margin-bottom: 10px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      background: var(--field);
+    }
+
+    .task > div {
+      min-width: 0;
+    }
+
+    .task .title {
+      font-size: 13px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .task .meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .task.done {
+      border-left-color: var(--line);
+      opacity: 0.65;
+    }
+
+    .task.done .title {
+      text-decoration: line-through;
+    }
+
+    .pill {
+      flex-shrink: 0;
+      padding: 3px 7px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 21px;
+    }
+
+    .tab {
+      padding: 8px 15px;
+      border: 2px solid var(--line);
+      border-radius: 4px;
+      background: var(--card);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--card);
+    }
+
+    /* ---------- Dashboard shortcuts ---------- */
+
+    .links {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
+      margin-top: 24px;
+    }
+
+    .links a {
+      display: block;
+      padding: 20px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 150ms;
+    }
+
+    .links a:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+    }
+
+    .links a small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400;
+    }
+
+    /* ---------- Calendar ---------- */
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .cal-head {
+      padding: 5px 0 10px;
+      color: var(--muted);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .day {
+      min-width: 0;
+      min-height: 100px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--field);
+      cursor: pointer;
+    }
+
+    .day:hover {
+      border-color: var(--accent);
+    }
+
+    .day.today {
+      border: 2px solid var(--accent);
+    }
+
+    .day.selected {
+      background: var(--accent-soft);
+    }
+
+    .day .num {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .day .ev {
+      overflow: hidden;
+      margin-top: 5px;
+      padding: 3px 5px;
+      border-radius: 2px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 10px;
+      line-height: 1.4;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ---------- Timer ---------- */
+
+    .timer-display {
+      margin: 30px 0 23px;
+      color: var(--accent);
+      font-size: clamp(48px, 7vw, 86px);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      letter-spacing: -3px;
+      text-align: center;
+      text-shadow: 3px 3px 0 var(--accent-soft);
+    }
+
+    .progress {
+      height: 12px;
+      overflow: hidden;
+      border: 2px solid var(--line);
+      border-radius: 2px;
+      background: var(--field);
+    }
+
+    .progress i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: var(--accent);
+      transition: width 250ms linear;
+    }
+
+    /* ---------- Study Companion ---------- */
+
+    .chat {
+      display: flex;
+      flex-direction: column;
+      height: 550px;
+    }
+
+    .messages {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      gap: 13px;
+      overflow-y: auto;
+      padding: 4px 3px 17px;
+    }
+
+    .msg {
+      max-width: 88%;
+      padding: 12px 14px;
+      border-radius: 5px;
+      font-size: 13px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: var(--card);
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+      border: 1px solid var(--line);
+      background: var(--field);
+      color: var(--ink);
+    }
+
+    .quick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .quick .btn {
+      font-size: 11px;
+    }
+
+    #roadmap {
+      overflow-wrap: anywhere;
+    }
+
+    /* ---------- Messages and modal ---------- */
+
+    .empty {
+      padding: 30px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    .empty h2 {
+      color: var(--ink);
+    }
+
+    .warn {
+      margin-bottom: 18px;
+      padding: 13px 15px;
+      border: 2px solid #cbb888;
+      border-radius: 4px;
+      background: #f8efd3;
+      color: #766132;
+      font-size: 13px;
+    }
+
+    [data-theme="dark"] .warn {
+      border-color: #80734e;
+      background: #3c3928;
+      color: #e5d7ab;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      place-items: center;
+      overflow-y: auto;
+      padding: 24px;
+      background: rgba(17, 34, 24, 0.55);
+    }
+
+    .modal.open {
+      display: grid;
+    }
+
+    .modal .card {
+      width: 100%;
+      max-width: 500px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+      padding: 27px;
+    }
+
+    .mobilebar {
+      display: none;
+    }
+
+    /* ---------- Responsive layout ---------- */
+
+    @media (max-width: 1100px) {
+      .sidebar {
+        flex-basis: 225px;
+        width: 225px;
+        padding-right: 12px;
+        padding-left: 12px;
+      }
+
+      .brand {
+        gap: 8px;
+        font-size: 21px;
+      }
+
+      main {
+        padding: 32px 23px 55px;
+      }
+
+      .stats,
+      .links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        display: none;
+      }
+
+      .mobile-header {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        min-height: 76px;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--line);
+        background: var(--card);
+      }
+
+      .mobile-header .brand {
+        padding: 0;
+        font-size: 23px;
+      }
+
+      .mobile-header .brand-logo {
+        flex-basis: 40px;
+        width: 40px;
+        height: 40px;
+      }
+
+      .layout {
+        min-height: calc(100vh - 76px);
+      }
+
+      main {
+        padding: 27px 20px 115px;
+      }
+
+      .mobilebar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 40;
+        display: flex;
+        align-items: stretch;
+        padding: 7px 4px calc(7px + env(safe-area-inset-bottom));
+        border-top: 2px solid var(--line);
+        background: var(--card);
+      }
+
+      .mobilebar a {
+        display: flex;
+        flex: 1 1 0;
+        min-width: 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        min-height: 56px;
+        padding: 5px 2px;
+        border-radius: 3px;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 1.25;
+        text-align: center;
+        text-decoration: none;
+      }
+
+      .mobilebar a.active {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .g3,
+      .g4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 650px) {
+      main {
+        padding: 24px 15px 115px;
+      }
+
+      .g2,
+      .g3,
+      .g4 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .stats,
+      .links {
+        gap: 10px;
+      }
+
+      .stat {
+        padding: 17px;
+      }
+
+      .stat b {
+        font-size: 25px;
+      }
+
+      .links a {
+        padding: 16px;
+      }
+
+      .calendar {
+        gap: 4px;
+      }
+
+      .day {
+        min-height: 70px;
+        padding: 5px;
+      }
+
+      .day .ev {
+        padding: 2px;
+        font-size: 8px;
+      }
+
+      .cal-head {
+        font-size: 10px;
+      }
+
+      .task {
+        flex-wrap: wrap;
+      }
+
+      .task > div {
+        flex-basis: 130px;
+      }
+
+      .modal {
+        padding: 15px;
+      }
+
+      .modal .card {
+        max-height: calc(100vh - 30px);
+        padding: 20px;
+      }
+
+      .forest-layer.back {
+        opacity: 0.18;
+      }
+
+      .forest-layer.front {
+        opacity: 0.15;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Decorative forest background -->
+  <div class="forest-scene" aria-hidden="true">
+    <div class="forest-sun"></div>
+
+    <svg
+      class="forest-layer back"
+      xmlns="http://www.w3.org/2000/svg"
+      width="1440"
+      height="310"
+      viewBox="0 0 1440 310"
+      preserveAspectRatio="xMidYMax slice"
+      shape-rendering="crispEdges"
+      focusable="false"
+    >
+      <defs>
+        <pattern
+          id="forest-back-pattern"
+          width="180"
+          height="310"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            fill="currentColor"
+            d="
+              M80 30h20v25h20v25h20v25h-20v20
+              h30v25h20v25h-40v20h30v25h20v25
+              h-70v65H70v-65H0v-25h20v-25h30
+              v-20H10v-25h20v-25h30v-20H40V80
+              h20V55h20z
+            "
+          />
+        </pattern>
+      </defs>
+
+      <rect
+        width="1440"
+        height="310"
+        fill="url(#forest-back-pattern)"
+      />
+    </svg>
+
+    <svg
+      class="forest-layer front"
+      xmlns="http://www.w3.org/2000/svg"
+      width="1440"
+      height="215"
+      viewBox="0 0 1440 215"
+      preserveAspectRatio="xMidYMax slice"
+      shape-rendering="crispEdges"
+      focusable="false"
+    >
+      <defs>
+        <pattern
+          id="forest-front-pattern"
+          x="65"
+          width="140"
+          height="215"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            fill="currentColor"
+            d="
+              M62 20h16v20h14v18h14v18H92v16
+              h22v18h14v20h-24v16h24v18h12v20
+              H82v31H58v-31H0v-20h12v-18h24
+              v-16H12v-20h14V92h22V76H34V58
+              h14V40h14z
+            "
+          />
+        </pattern>
+      </defs>
+
+      <rect
+        width="1440"
+        height="215"
+        fill="url(#forest-front-pattern)"
+      />
+    </svg>
+  </div>
+
+  <!-- Mobile upper-left logo -->
+  <header class="mobile-header">
+    <a class="brand" href="#dashboard" aria-label="FocusFlow home">
+
+      <!-- CHANGE YOUR LOGO HERE — mobile version -->
+      <img
+        class="brand-logo"
+        src="logo.png"
+        alt=""
+        width="46"
+        height="46"
+      >
+
+      FocusFlow
+    </a>
+  </header>
+
+  <div class="layout">
+    <!-- Desktop upper-left logo and sidebar -->
+    <aside class="sidebar">
+      <a class="brand" href="#dashboard" aria-label="FocusFlow home">
+
+        <!-- CHANGE YOUR LOGO HERE — desktop version -->
+        <img
+          class="brand-logo"
+          src="./logo.png"
+          alt=""
+          width="46"
+          height="46"
+        >
+
+        FocusFlow
+      </a>
+
+      <p class="brand-caption">
+        A little focus. A little growth.
+      </p>
+
+      <nav
+        class="nav"
+        id="nav"
+        aria-label="Main navigation"
+      ></nav>
+
+      <div class="sidebar-note">
+        Take your time.<br>
+        Even the tallest trees<br>
+        grow one day at a time.
+      </div>
+    </aside>
+
+    <main id="app">
+      <section class="card">
+        <h1>Welcome to your forest</h1>
+
+        <p class="sub">
+          A quiet space to plan, focus, and grow.
+        </p>
+
+        <p>Loading your study workspace…</p>
+
+        <p>
+          If this message remains visible, check that
+          <code>app.js</code> is saved beside
+          <code>index.html</code> and loads without errors.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <nav
+    class="mobilebar"
+    id="mobilebar"
+    aria-label="Mobile navigation"
+  ></nav>
+
+  <div class="modal" id="modal">
+    <div
+      class="card"
+      id="modalBody"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Edit details"
+    ></div>
+  </div>
+
+  <noscript>
+    <p style="position:relative;z-index:2;padding:20px;">
+      Please enable JavaScript to use FocusFlow.
+    </p>
+  </noscript>
+
+  <script src="./app.js"></script>
+</body>
+</html>
